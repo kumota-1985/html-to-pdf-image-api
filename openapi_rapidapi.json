@@ -1,0 +1,115 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "HTML to PDF & Image Generator",
+    "description": "Turn an HTML/CSS template + JSON data into a pixel-perfect PDF or PNG/JPEG image in one call. Jinja2 templating, full CSS via headless Chromium, page size & margins, viewport control. Templates render in a sandbox.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    { "url": "https://html-to-pdf-image-api.onrender.com" }
+  ],
+  "paths": {
+    "/api/generator/pdf": {
+      "post": {
+        "summary": "Generate a PDF from an HTML template",
+        "description": "Render an HTML/CSS (Jinja2) template with dynamic data and return a PDF binary.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/GeneratePDFRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The generated PDF",
+            "content": { "application/pdf": { "schema": { "type": "string", "format": "binary" } } }
+          }
+        }
+      }
+    },
+    "/api/generator/image": {
+      "post": {
+        "summary": "Generate an image (PNG/JPEG) from an HTML template",
+        "description": "Render an HTML/CSS (Jinja2) template with dynamic data and return a screenshot image.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/GenerateImageRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The generated image",
+            "content": {
+              "image/png": { "schema": { "type": "string", "format": "binary" } },
+              "image/jpeg": { "schema": { "type": "string", "format": "binary" } }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PDFOptions": {
+        "type": "object",
+        "properties": {
+          "format": { "type": "string", "enum": ["A4", "A3", "A5", "Letter", "Legal"], "default": "A4" },
+          "landscape": { "type": "boolean", "default": false },
+          "printBackground": { "type": "boolean", "default": true },
+          "marginTop": { "type": "string", "default": "0px", "example": "10px" },
+          "marginBottom": { "type": "string", "default": "0px" },
+          "marginLeft": { "type": "string", "default": "0px" },
+          "marginRight": { "type": "string", "default": "0px" }
+        }
+      },
+      "ImageOptions": {
+        "type": "object",
+        "properties": {
+          "width": { "type": "integer", "minimum": 1, "maximum": 4000, "default": 800 },
+          "height": { "type": "integer", "minimum": 1, "maximum": 4000, "default": 600 },
+          "type": { "type": "string", "enum": ["png", "jpeg"], "default": "png" },
+          "quality": { "type": "integer", "minimum": 1, "maximum": 100, "description": "JPEG only" }
+        }
+      },
+      "GeneratePDFRequest": {
+        "type": "object",
+        "required": ["html_template"],
+        "properties": {
+          "html_template": {
+            "type": "string",
+            "description": "HTML string with optional Jinja2 placeholders, e.g. <h1>{{ title }}</h1>",
+            "example": "<h1>Invoice {{ number }}</h1><p>Total: {{ total }}</p>"
+          },
+          "data": {
+            "type": "object",
+            "description": "Values for the Jinja2 placeholders",
+            "example": { "number": "A-001", "total": "¥10,000" }
+          },
+          "options": { "$ref": "#/components/schemas/PDFOptions" }
+        }
+      },
+      "GenerateImageRequest": {
+        "type": "object",
+        "required": ["html_template"],
+        "properties": {
+          "html_template": {
+            "type": "string",
+            "description": "HTML string with optional Jinja2 placeholders",
+            "example": "<div style='padding:40px;font-size:32px'>Hello {{ name }}</div>"
+          },
+          "data": {
+            "type": "object",
+            "description": "Values for the Jinja2 placeholders",
+            "example": { "name": "World" }
+          },
+          "options": { "$ref": "#/components/schemas/ImageOptions" }
+        }
+      }
+    }
+  }
+}

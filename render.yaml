@@ -1,0 +1,15 @@
+# Render Blueprint for the HTML -> PDF/Image API.
+# Uses Docker because Playwright needs a real Chromium + system libraries.
+# Deploy: push to GitHub -> Render -> New > Blueprint -> pick this repo.
+services:
+  - type: web
+    name: html-to-pdf-image-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free        # NOTE: Chromium is memory-heavy; the 512MB free plan can OOM on
+                      # real renders. If you see 5xx/crashes under load, change this to
+                      # "starter" ($7/mo) and redeploy.
+    envVars:
+      - key: RAPIDAPI_PROXY_SECRET
+        sync: false   # set in the Render dashboard = the RapidAPI Gateway Proxy Secret
+                      # (locks the origin so the renderer can't be hit directly).
