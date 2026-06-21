@@ -11,14 +11,14 @@ except TypeError:
         return original_md5(*args, **kwargs)
     hashlib.md5 = md5_patched
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from playwright.async_api import async_playwright
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
-from app.core.deps import limiter
+from app.core.deps import limiter, require_proxy_secret
 from app.routers import r01_generator
 
 @asynccontextmanager
@@ -48,13 +48,14 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,   # public API uses header keys, not cookies; "*"+credentials is invalid
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Register routers
-app.include_router(r01_generator.router, prefix=settings.API_V1_STR, tags=["Generator"])
+# Register routers (gated by the RapidAPI proxy secret when configured)
+app.include_router(r01_generator.router, prefix=settings.API_V1_STR, tags=["Generator"],
+                   dependencies=[Depends(require_proxy_secret)])
 
 @app.get("/")
 def read_root():

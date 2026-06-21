@@ -2,7 +2,7 @@ from typing import Any, Dict, Optional
 from pydantic import BaseModel, Field
 
 class PDFOptions(BaseModel):
-    format: str = Field("A4", description="用紙サイズ (例: A4, A3, A5, Letter, Legal)")
+    format: str = Field("A4", pattern="^(A4|A3|A5|Letter|Legal)$", description="用紙サイズ (A4, A3, A5, Letter, Legal)")
     landscape: bool = Field(False, description="横向き (True) または 縦向き (False)")
     print_background: bool = Field(True, alias="printBackground", description="背景グラフィックを印刷するかどうか")
     margin_top: str = Field("0px", alias="marginTop", description="上マージン (例: '10px', '1in')")
@@ -14,10 +14,10 @@ class PDFOptions(BaseModel):
         populate_by_name = True  # Pydantic v2: allows using both camelCase and snake_case
 
 class ImageOptions(BaseModel):
-    width: int = Field(800, description="ビューポート幅 (px)")
-    height: int = Field(600, description="ビューポート高さ (px)")
-    type: str = Field("png", description="画像フォーマット ('png' または 'jpeg')")
-    quality: Optional[int] = Field(None, description="画質 (jpegの場合のみ有効、1〜100)")
+    width: int = Field(800, ge=1, le=4000, description="ビューポート幅 (px, 最大4000)")
+    height: int = Field(600, ge=1, le=4000, description="ビューポート高さ (px, 最大4000)")
+    type: str = Field("png", pattern="^(png|jpeg)$", description="画像フォーマット ('png' または 'jpeg')")
+    quality: Optional[int] = Field(None, ge=1, le=100, description="画質 (jpegの場合のみ有効、1〜100)")
 
 class GeneratePDFRequest(BaseModel):
     html_template: str = Field(..., description="Jinja2プレースホルダー付きのHTMLテンプレート文字列")
