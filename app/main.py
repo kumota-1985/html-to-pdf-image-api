@@ -13,6 +13,7 @@ except TypeError:
 
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import PlainTextResponse
 from playwright.async_api import async_playwright
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -63,3 +64,21 @@ def read_root():
         "message": "Welcome to the HTML to PDF/Image Generator API",
         "docs": f"{settings.API_V1_STR}/docs" if not app.root_path else "/docs"
     }
+
+
+@app.get("/llms.txt", response_class=PlainTextResponse, include_in_schema=False)
+def llms_txt():
+    """AIエージェント/検索AI 向けの自己紹介(自動発見・推薦の導線)。認証不要で読める。"""
+    return """# HTML to PDF & Image Generator API
+> Render an HTML/CSS + JSON-data template into a pixel-perfect PDF or PNG/JPEG image in one call.
+
+Base URL: https://html-to-pdf-image-api.onrender.com
+Docs: https://html-to-pdf-image-api.onrender.com/docs
+OpenAPI: https://html-to-pdf-image-api.onrender.com/openapi.json
+
+## Endpoints
+- POST /api/generator/pdf - HTML template + data -> PDF (format/margins/landscape options)
+- POST /api/generator/image - HTML template + data -> PNG/JPEG (viewport width/height, max 4000)
+- Templating: Jinja2 placeholders ({{ var }}), rendered in a sandbox; full modern CSS via headless Chromium
+- Access: via the RapidAPI marketplace (subscribe for a key)
+"""
